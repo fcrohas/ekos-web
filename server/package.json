@@ -1,0 +1,32 @@
+{
+  "name": "ekos-server",
+  "version": "1.0.0",
+  "description": "Ekos Web server backend",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fcrohas/ekos-web.git"
+  },
+  "keywords": [
+    "ekos",
+    "web",
+    "nodejs"
+  ],
+  "author": "fcrohas@gmail.com",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/fcrohas/ekos-web/issues"
+  },
+  "homepage": "https://github.com/fcrohas/ekos-web#readme",
+  "dependencies": {
+    "busboy": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.2",
+    "morgan": "^1.10.0",
+    "socket.io": "^4.4.0"
+  }
+}
