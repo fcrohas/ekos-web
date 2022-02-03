@@ -1,31 +1,35 @@
 <template>
-  <div class="vertical-button">
-    <el-button @click="capture.preview()" :size="15" :icon="View" class="big-icon"></el-button><br>
-    <el-button @click="capture.start()" :size="15" :icon="VideoPlay" class="big-icon"></el-button><br>
-    <el-button @click="capture.stop()" :size="15" :icon="VideoPause" class="big-icon"></el-button>
+  <div class="left-control">
+    <el-button @click="toggleGuider()" :class="{selected: guiderState}" :size="'15'" :icon="Promotion" class="big-icon"></el-button>
+    <div class="text">Guider</div>
   </div>
 </template>
 <script setup>
 /* eslint-disable vue/no-unused-components */
 import {
-  View,
-  VideoPlay,
-  VideoPause } from '@element-plus/icons'
+  Promotion
+} from '@element-plus/icons'
 </script>
 <script>
-import CaptureApi from "@/services/capture-api"
 
 export default {
   name: 'Capture',
   components: {
   },
+  emits: {
+    showGuider: null
+  },
   data() {
     return {
-      capture: CaptureApi
+      guiderState: false
     }
   },
   methods: {
-
+    toggleGuider() {
+      this.guiderState = !this.guiderState
+      console.log("Show guider emit", this.guiderState)
+      this.$emit('showGuider', this.guiderState)
+    }
 
   },
   created() {
@@ -35,18 +39,45 @@ export default {
 }
 </script>
 
-<style  scoped>
-.vertical-button {
+<style scoped>
+.left-control {
   display:flex;
   justify-content:center;
   align-items:center;
   flex-direction: column;
+  height: 100%;
+  position: absolute;
+  top: 0px;
+  left: 0px;
 }
 
-.big-icon {
+.spacer {
+  height: 0%;
+}
+
+.horizontal-spacer {
+  width: 100%;
+}
+
+.big-icon, .big-icon:focus {
   background: transparent;
   color: white;
   border: none;
   font-size: 3em;
+  border: none;
+}
+
+.big-icon:hover {
+  color: white;
+  background-color: transparent;
+}
+
+.selected {
+  color: green;
+}
+
+.text {
+  color: white;
+  font-size: 1em;
 }
 </style>

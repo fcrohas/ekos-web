@@ -1,102 +1,50 @@
 <template>
-  <el-container>
-    <el-card class="box-card" v-if="states['new_mount_state'] !== undefined">
-      <template #header>
-        <div class="card-header">
-          <span>{{ states['new_mount_state'].name }}</span>
-          <p>{{ states['new_mount_state'].status }}</p>
-        </div>
-      </template>
-      <div>
-        <div>at {{ states['new_mount_state'].at }}</div>
-        <div>az {{ states['new_mount_state'].az }}</div>
-        <div>de {{ states['new_mount_state'].de }}</div>
-        <div>ha {{ states['new_mount_state'].ha }}</div>
-        <div>ra {{ states['new_mount_state'].ra }}</div>
-      </div>
-    </el-card>
-    <el-card class="box-card" v-if="states['new_camera_state'] !== undefined">
-      <template #header>
-        <div class="card-header">
-          <span>{{ states['new_camera_state'].name }}</span>
-          <p>{{ states['new_camera_state'].status }}</p>
-        </div>
-      </template>
-      <div>
-        <div>Temperature {{ states['new_camera_state'].temperature }}</div>
-        <div>Gain {{ states['new_camera_state'].gain }}</div>
-      </div>
-    </el-card>
-    <el-card class="box-card" v-if="states['new_polar_state'] !== undefined">
-      <template #header>
-        <div class="card-header">
-          <span>Polar Align</span>
-          <p v-if="states['new_polar_state'].stage !== undefined">{{ states['new_polar_state'].stage }}</p>
-        </div>
-      </template>
-      <div>
-        <div v-if="states['new_polar_state'].stage !== undefined">{{ states['new_polar_state'].message }}</div>
-        <div v-if="states['new_polar_state'].stage !== undefined">To be done</div>
-      </div>
-    </el-card>
-    <el-card class="box-card" v-if="states['new_guide_state'] !== undefined">
-      <template #header>
-        <div class="card-header">
-          <span>Guider</span>
-          <p>{{ states['new_guide_state'].status }}</p>
-        </div>
-      </template>
-      <div>
-        <div>{{ prettyfy(states['new_guide_state']) }}</div>
-      </div>
-    </el-card>
-    <el-card class="box-card" v-if="states['new_capture_state'] !== undefined">
-      <template #header>
-        <div class="card-header">
-          <span>Capture</span>
-          <p>{{ states['new_capture_state'].status }}</p>
-        </div>
-      </template>
-      <div>
-        <div>{{ prettyfy(states['new_capture_state']) }}</div>
-      </div>
-    </el-card>
-    <el-card class="box-card" v-if="states['new_focus_state'] !== undefined">
-      <template #header>
-        <div class="card-header">
-          <span>Focuser</span>
-          <p>{{ states['new_focus_state'].status }}</p>
-        </div>
-      </template>
-      <div>
-        <div>{{ prettyfy(states['new_focus_state']) }}</div>
-      </div>
-    </el-card>
-    <el-card class="box-card" v-if="states['new_align_state'] !== undefined">
-      <template #header>
-        <div class="card-header">
-          <span>PlateSolver</span>
-          <p>{{ states['new_align_state'].status }}</p>
-        </div>
-      </template>
-      <div>
-        <div>{{ prettyfy(states['new_align_state']) }}</div>
-      </div>
-    </el-card>
-  </el-container>
+  <div class="horizontal-info">
+  <div class="vertical-button">
+    <div class="spacer"></div>
+    <el-button @click="pah.setZoom(1.5)" :size="15" :icon="ZoomIn" class="big-icon"></el-button>
+    <p class="text">Zoom in</p>
+    <el-button @click="pah.setZoom(0.5)" :size="15" :icon="ZoomOut" class="big-icon"></el-button>
+    <p class="text">Zoom out</p>
+    <el-button @click="pah.refresh(1.0)" :size="15" :icon="Refresh" class="big-icon"></el-button>
+    <p class="text">Refresh</p>
+    <el-button @click="togglePolarAlign()" :size="15" :icon="Aim" class="big-icon"></el-button>
+    <p class="text">Polar</p>
+  </div>
+  <div class="info" v-if="isPolarAlign">
+    <h3 class="title">{{ state.stage }}</h3>
+    <p>{{ state.message }}</p>
+    <el-button @click="nextStage()">Next</el-button>
+    <el-button @click="pah.resetView()">Stop</el-button>
+  </div>
+  </div>
 </template>
+
+<script setup>
+/* eslint-disable vue/no-unused-components */
+import {
+  ZoomIn,
+  ZoomOut,
+    Refresh,
+  Aim
+} from '@element-plus/icons'
+</script>
 
 <script>
 import SocketUi from '@/services/websocket.js'
+import States from '@/services/states.js'
 import PolarAlignApi from '@/services/polar-align-api'
 
 export default {
-  name: 'Toolbar',
+  name: 'PolarAlign',
   components: {
   },
   data() {
     return {
-      states : []
+      pah: PolarAlignApi,
+      states: States.getInstance(),
+      state : {},
+      isPolarAlign: false
     }
   },
   methods: {
@@ -106,20 +54,25 @@ export default {
       }
     },
     parse(message) {
-      if (message.type != 'new_connection_state') {
-        if (this.states[message.type] == undefined) {
-          this.states[message.type] = {}
-        }
-        this.states[message.type] = Object.assign(this.states[message.type], message.payload)
-      }
+      this.state = Object.assign(this.state, message.payload)
     },
-    prettyfy: function(value) {
-      return JSON.stringify(value, null, 2);
+    togglePolarAlign() {
+      this.isPolarAlign = !this.isPolarAlign
+    },
+    nextStage() {
+      switch (this.state.stage) {
+        case 'Idle':
+        case  undefined:
+          this.pah.start()
+          break;
+        default:
+          console.log("stage=", this.state.stage)
+      }
     }
   },
   created() {
     const ws = SocketUi.getInstance({host:'127.0.0.1', port: '3000'})
-    ws.registerEvent(['new_'], this.onEvent)
+    ws.registerEvent(['new_polar_state'], this.onEvent)
   }
 
 
@@ -127,21 +80,52 @@ export default {
 </script>
 
 <style  scoped>
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.horizontal-info {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction: row;
+  height: 100%;
+}
+
+.vertical-button {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction: column;
+  height: 100%;
+}
+
+.spacer {
+  height: 0%;
+}
+
+.big-icon {
+  background-color: transparent;
+  color: white;
+  border: none;
+  font-size: 3em;
+  border: none;
+}
+
+.big-icon:hover {
+  color: white;
+  background-color: transparent;
 }
 
 .text {
-  font-size: 14px;
+  color: white;
+  font-size: 1em;
+}
+.info {
+  color: white;
+  width: 200px;
+  margin: 20px;
+  height: 300px;
 }
 
-.item {
-  margin-bottom: 18px;
-}
-
-.box-card {
-  width: 250px;
+.title {
+  text-underline: white;
+  border-bottom: solid 1px;
 }
 </style>

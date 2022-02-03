@@ -4,8 +4,8 @@ import axios from "axios"
 export default class PolarAlignApi {
 
     static resetView() {
-        axios.post(Config.serverUrl() + '/api/pah/reset').then( (response) => {
-            console.log('Capture preview', response.data)
+        axios.post(Config.serverUrl() + '/api/pah/reset-view').then( (response) => {
+            console.log('Capture reset view', response.data)
         })
     }
 
@@ -28,31 +28,31 @@ export default class PolarAlignApi {
     }
 
     static refreshDone() {
-        axios.post(Config.serverUrl() + '/api/pah/refreshdone').then( (response) => {
+        axios.post(Config.serverUrl() + '/api/pah/refresh-done').then( (response) => {
             console.log('Capture preview', response.data)
         })
     }
 
     static setCrossHair(x,y) {
-        axios.post(Config.serverUrl() + '/api/pah/setcrosshair', null, { params : {x : x, y: y}}).then( (response) => {
+        axios.post(Config.serverUrl() + '/api/pah/set-crosshair', null, { params : {x : x, y: y}}).then( (response) => {
             console.log('Capture preview', response.data)
         })
     }
 
     static selectDone() {
-        axios.post(Config.serverUrl() + '/api/pah/selectdone').then( (response) => {
+        axios.post(Config.serverUrl() + '/api/pah/select-done').then( (response) => {
             console.log('Capture preview', response.data)
         })
     }
 
     static setZoom(scaleValue) {
-        axios.post(Config.serverUrl() + '/api/pah/setzoom', null, { params : {scale : scaleValue}}).then( (response) => {
+        axios.post(Config.serverUrl() + '/api/pah/set-zoom', null, { params : {scale : scaleValue}}).then( (response) => {
             console.log('Capture preview', response.data)
         })
     }
 
     static slewDone() {
-        axios.post(Config.serverUrl() + '/api/pah/slewDone').then( (response) => {
+        axios.post(Config.serverUrl() + '/api/pah/slew-done').then( (response) => {
             console.log('Capture preview', response.data)
         })
     }

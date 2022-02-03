@@ -84,30 +84,48 @@ export class WebSocket {
         });
     }
 
-    sendMessage(msg) {
-        this.sockets[WebSocket.#MESSAGE].clients.forEach( client => {
-            client.send(JSON.stringify(msg, (key,value) => {
-                if (typeof value === 'string') {
-                    const newIntValue = parseInt(value);
-                    if (!isNaN(newIntValue)) {
-                        return newIntValue;
-                    } else {
+    toJSON(msg) {
+        return JSON.stringify(msg, (key,value) => {
+            if (typeof value === 'string') {
+                if (value.startsWith('[') && value.endsWith(']')) {
+                    // Array received, split it
+                    value = value.replace("[",'');
+                    value = value.replace("]",'');
+                    const values = value.split(',');
+                    return values;
+                } else {
+                    if (value.indexOf('.') !== -1) {
                         const newFloatValue = parseFloat(value);
                         if (isNaN(newFloatValue)) {
                             return value;
                         } else {
+                            console.log(key, ' is float=', newFloatValue)
                             return newFloatValue;
+                        }
+                    } else {
+                        const newIntValue = parseInt(value);
+                        if (!isNaN(newIntValue)) {
+                            console.log(key, ' is int=', newIntValue)
+                            return newIntValue;
+                        } else {
+                            return value;
                         }
                     }
                 }
-                return value;
-            }), { binary: false });
+            }
+            return value;
+        });
+    }
+
+    sendMessage(msg) {
+        this.sockets[WebSocket.#MESSAGE].clients.forEach( client => {
+            client.send(this.toJSON(msg), { binary: false });
         });
     }
 
     sendMedia(msg) {
         this.sockets[WebSocket.#MEDIA].clients.forEach( client => {
-            client.send(JSON.stringify(msg), { binary: false });
+            client.send(this.toJSON(msg), { binary: false });
         });
     }
 

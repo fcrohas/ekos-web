@@ -21,9 +21,10 @@ export class BaseRouter {
     onRegisterEvent(message) {
         if (this.commands[message.type] != null) {
             this.commands[message.type](message.payload);
+            console.log('Command event', message);
         } else {
             // unsolicited event
-            console.log('Unsolicited profiles event', message);
+            console.log('Unsolicited event', message);
         }
     }
 
@@ -53,7 +54,12 @@ export class BaseRouter {
             type: command,
             payload : params
         });
-        console.log({
+        response.status(200).send();
+    }
+
+    async runMediaCommand(command, params, response) {
+        // run command
+        this.context.websocket.sendMedia({
             type: command,
             payload : params
         });

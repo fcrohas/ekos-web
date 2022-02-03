@@ -4,7 +4,7 @@
             ref="canvas"
             :height="height"
             :width="width"></canvas>
-    <div class="overlay">{{ imageProperties.resolution }} - {{ imageProperties.gain }} - {{ imageProperties.temperature}} °C</div>
+    <div class="overlay">{{ imageProperties.resolution }} - Gain: {{ imageProperties.gain }} - Exposure: {{ imageProperties.exposure}} s</div>
   </el-container>
 </template>
 
@@ -15,6 +15,7 @@ export default {
   name: 'Viewer',
   components: {
   },
+  props: ['mode'],
   data() {
     return {
       states : [],
@@ -46,23 +47,41 @@ export default {
       })
       // is 0x0 found upper than METADATA_PACKET limit then header is full
       if (pos > METADATA_PACKET) pos = METADATA_PACKET
-      this.imageProperties = JSON.parse(Buffer.from(dataArr.subarray(0,pos)).toString('utf-8'))
-      const resolution = this.imageProperties.resolution.split('x')
-      this.resolution.width = resolution[0]
-      this.resolution.height = resolution[2]
-      this.draw(dataArr.subarray(METADATA_PACKET))
-      this.lastImage = dataArr.subarray(METADATA_PACKET)
+      const properties = JSON.parse(Buffer.from(dataArr.subarray(0, pos)).toString('utf-8'))
+      if (properties.uuid.startsWith('+') && this.toMode(this.mode) === properties.uuid || this.mode === 'capture' && !properties.uuid.startsWith('+')) {
+        this.imageProperties = properties
+        const resolution = this.imageProperties.resolution.split('x')
+        this.resolution.width = resolution[0]
+        this.resolution.height = resolution[1]
+        this.draw(dataArr.subarray(METADATA_PACKET))
+        this.lastImage = dataArr.subarray(METADATA_PACKET)
+      }
+    },
+    toMode(mode) {
+      switch(mode) {
+        case 'guide':
+          return '+G'
+        case 'focus':
+          return '+F'
+        case 'align':
+          return '+A'
+        default:
+          return ''
+      }
     },
     draw(raw) {
       const blob = new Blob([raw], {type: 'image/jpeg'})
       const url = URL.createObjectURL(blob)
       const img = new Image()
       const context = this.ctx
-      //const vm = this;
+      const vm = this;
       // once image is loaded
       img.onload = function() {
-          // draw it then release object
-          context.drawImage(this, 700,200) //, vm.resolution.width, vm.resolution.height)
+        // clear rectangle before draw
+        context.clearRect(0, 0, vm.width, vm.height);
+        // draw it then release object
+        // Center object
+        context.drawImage(this, vm.width / 2 - img.width / 2, vm.height / 2 - img.height / 2) //, vm.resolution.width, vm.resolution.height)
           URL.revokeObjectURL(url)
       }
       img.onerror = function() {
@@ -93,6 +112,8 @@ export default {
     // Instantiate
     this.canvas = this.$refs.canvas;
     this.ctx = this.canvas.getContext("2d");
+    this.height = window.innerHeight - this.margin;
+    this.width = window.innerWidth - this.margin;
     // Bind canvas resize
     window.addEventListener('resize', this.handleResize);
     this.handleResize();    
@@ -112,13 +133,17 @@ export default {
     align-items: center;
     height: 100%;
     width: 100%;
-    background-color: #000;
+    background-color: #000e;
   }
   .overlay {
     position: absolute;
-    left: 400px;
+    opacity: 0.5;
+    left: 0px;
     bottom: 0px;
-    font-size: 1em;
+    height: 50px;
+    width: 100%;
+    font-size: 2em;
     color: white;
+    background-color: black;
   }
 </style>

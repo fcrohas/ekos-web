@@ -17,6 +17,7 @@ export class StatesApi extends BaseRouter {
         const baseRouter = new BaseRouter();
         const statesApi = new StatesApi(context);
         baseRouter.router.post('/online', (req, res) => statesApi.setOnline(req, res));
+        baseRouter.router.get('/states', (req, res) => statesApi.runCommandAndWait('get_states', req.query, res));
         // Prepare websocket event
         context.websocket.registerFilter(['new_', 'set_client_state'], (message) => statesApi.onStateEvent(message));
         return baseRouter.router;

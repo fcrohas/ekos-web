@@ -30,7 +30,7 @@ export class CaptureApi extends BaseRouter {
         captureApi.router.post('/loop', (req, res) => captureApi.runCommand('capture_loop', req.query, res));
         captureApi.router.get('/get-calibration-settings', (req, res) => captureApi.runCommandAndWait('capture_get_calibration_settings', req.query, res));
         captureApi.router.post('/set-settings', (req, res) => captureApi.runCommand('capture_set_settings', req.query, res));
-        captureApi.router.get('/get_file_settings', (req, res) => captureApi.runCommandAndWait('capture_get_file_settings', req.query, res));
+        captureApi.router.get('/get-file-settings', (req, res) => captureApi.runCommandAndWait('capture_get_file_settings', req.query, res));
 
         // Prepare websocket event
         context.websocket.registerFilter(['capture_'], (message) => captureApi.onRegisterEvent(message));

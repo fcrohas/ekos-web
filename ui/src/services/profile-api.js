@@ -10,4 +10,8 @@ export default class ProfileApi {
     static stop(name) {
         return axios.post(Config.serverUrl() + '/api/profiles/' + name + '/stop')
     }
+
+    static list() {
+        return axios.get(Config.serverUrl() + '/api/profiles')
+    }
 }

@@ -13,6 +13,7 @@ import {GuideApi} from './http/guide.js';
 import {DomeApi} from './http/dome.js';
 import {AlignApi} from './http/align.js';
 import {AstroApi} from './http/astro.js';
+import {DevicesApi} from './http/devices.js';
 
 const corsOptions = {
     origin: '*',
@@ -48,6 +49,7 @@ export class HttpServer {
         this.registerRoute(DomeApi.mountPath(), DomeApi.register(this.options));
         this.registerRoute(AlignApi.mountPath(), AlignApi.register(this.options));
         this.registerRoute(AstroApi.mountPath(), AstroApi.register(this.options));
+        this.registerRoute(DevicesApi.mountPath(), DevicesApi.register(this.options));
         this.registerRoute(AuthenticateApi.mountPath(), AuthenticateApi.register({storage:this.options.storage}));
         // Prepare website ui
         this.http.use(express.static(this.options.webpath));

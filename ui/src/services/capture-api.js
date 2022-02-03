@@ -1,9 +1,9 @@
 import Config from "./config"
 import axios from "axios"
 
-export default class ProfileApi {
+export default class CaptureApi {
 
-    static preview() {
+    static capture() {
         axios.post(Config.serverUrl() + '/api/capture/preview').then( (response) => {
             console.log('Capture preview', response.data)
         })
