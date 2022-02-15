@@ -1,7 +1,7 @@
 <template>
   <el-container class="chart" v-show="show">
     <canvas ref="canvas" :height="height" :width="width"></canvas>
-    <p class="status">Guider RA: {{ driftRA }} DE: {{ driftDE }} RMS: {{ state.rms }}</p>
+    <p class="status">Guider RA: {{ rmsRA }} DE: {{ rmsDE }} RMS: {{ state.rms }}</p>
   </el-container>
 </template>
 
@@ -42,10 +42,10 @@ export default {
       return this.formatDrift(this.state.drift_de)
     },
     rmsRA() {
-      return this.formatDrift(this.state.rarms)
+      return Math.round(this.state.rarms * 1000) / 1000
     },
     rmsDE() {
-      return this.formatDrift(this.state.derms)
+      return Math.round(this.state.derms * 1000) / 1000
     }
   },
   methods: {
@@ -108,21 +108,21 @@ export default {
       let pos = 0
       if (this.history.length > 0) {
         this.ctx.beginPath()
-        this.ctx.moveTo(offsetX, offsetY + stepHeight * (steps / 2) + this.history[0].drift_de)
+        this.ctx.moveTo(offsetX, offsetY + stepHeight * (steps / 2) - this.history[0].drift_de * stepHeight)
         this.ctx.strokeStyle = '#ff0000'
         this.ctx.lineWidth = 2
         this.history.forEach(point => {
-          this.ctx.lineTo(offsetX + stepWidth * pos, offsetY + stepHeight * (steps / 2) + point.drift_de)
+          this.ctx.lineTo(offsetX + stepWidth * pos, offsetY + stepHeight * (steps / 2) - point.drift_de * stepHeight)
           pos += 1
         })
         pos = 0
         this.ctx.stroke()
         this.ctx.beginPath()
-        this.ctx.moveTo(offsetX, offsetY + stepHeight * (steps / 2) + this.history[0].drift_ra)
+        this.ctx.moveTo(offsetX, offsetY + stepHeight * (steps / 2) - this.history[0].drift_ra * stepHeight)
         this.ctx.strokeStyle = '#0000ff'
         this.ctx.lineWidth = 2
         this.history.forEach(point => {
-          this.ctx.lineTo(offsetX + stepWidth * pos, offsetY + stepHeight * (steps / 2) + point.drift_ra)
+          this.ctx.lineTo(offsetX + stepWidth * pos, offsetY + stepHeight * (steps / 2) - point.drift_ra * stepHeight)
           pos += 1
         })
         this.ctx.stroke()

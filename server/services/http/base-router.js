@@ -23,7 +23,8 @@ export class BaseRouter {
             this.commands[message.type](message.payload);
             console.log('Command event', message);
         } else {
-            // unsolicited event
+            // unsolicited event but match a filter so send it to UI
+            this.context.websocket.sendUi(message);
             console.log('Unsolicited event', message);
         }
     }

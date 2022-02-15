@@ -27,4 +27,11 @@ export default {
 .el-main {
   padding: 0px !important;
 }
+
+.menu-settings {
+  top: 4em !important;
+  right: 10em !important;
+  height: 90% !important;
+}
+
 </style>

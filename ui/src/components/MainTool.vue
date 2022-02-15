@@ -8,7 +8,14 @@
     <div class="spacer"></div>
     <el-button :size="'15'" :icon="Eleme" class="medium-icon" @click="toggleExposure()"></el-button>
     <div class="text">{{ properties.exposure }} s</div>
+    <el-button :size="'15'" :icon="Sunny" class="medium-icon" @click="toggleGain()"></el-button>
+    <div class="text">{{ properties.gain }}</div>
+    <div class="spacer"></div>
+    <el-button :size="'15'" :icon="Tools" class="medium-icon" @click="drawer = true"></el-button>
   </div>
+  <el-drawer v-model="drawer" :with-header="false" size="50%" modal-class="menu-settings">
+    <Settings :mode="mode" :load="drawer"></Settings>
+  </el-drawer>
 </template>
 <script setup>
 /* eslint-disable vue/no-unused-components */
@@ -16,22 +23,31 @@ import {
   Camera,
   Eleme,
   VideoPlay,
-  VideoPause
+  VideoPause, 
+  Sunny,
+  Tools
 } from '@element-plus/icons'
 </script>
 <script>
+import Settings from "@/components/Settings"
+
 import CaptureApi from "@/services/capture-api.js"
 import PolarAlignApi from "@/services/polar-align-api.js"
 import FocusApi from "@/services/focus-api";
 import AlignApi from "@/services/align-api";
+import SocketUi from '@/services/websocket.js'
+import { ref } from 'vue'
 
 export default {
   name: 'MainTool',
   components: {
+    Settings
   },
   props: ['mode'],
   data() {
     return {
+      drawer: ref(false),
+      states: {},
       capture: CaptureApi,
       pah: PolarAlignApi,
       focus: FocusApi,
@@ -46,6 +62,27 @@ export default {
     }
   },
   methods: {
+    onEvent(message) {
+      if (message != undefined) {
+        if (this.states[message.type] === undefined) {
+          this.states[message.type] = {}
+        }
+        this.states[message.type] = Object.assign(this.states[message.type], message.payload)
+        this.update()
+      }
+    },
+    update() {
+      switch(this.mode) {
+        case 'align':
+          this.isCapture = this.states['new_align_state'].status === 'Aborted' ||
+                           this.states['new_align_state'].status === 'Complete' ? false : true
+          break;
+        case 'focus':
+          this.isCapture = this.states['new_focus_state'].status === 'Aborted' ||
+                           this.states['new_focus_state'].status === 'Complete' ? false : true
+          break; 
+      }
+    },
     toggleExposure() {
       // get next exposure
       if (this.exposures.indexOf(this.properties.exposure) === this.exposures.length - 1) {
@@ -57,7 +94,7 @@ export default {
     toggleGain() {
       // get next exposure
       if (this.gains.indexOf(this.properties.gain) === this.gains.length - 1) {
-        this.properties.gain = this.exposures[0]
+        this.properties.gain = this.gains[0]
       } else {
         this.properties.gain = this.gains[this.gains.indexOf(this.properties.gain) + 1]
       }
@@ -78,7 +115,7 @@ export default {
           console.log("Not implemented mode ", this.mode)
       }
       if (device !== null) {
-        device.capture()
+        device.capture({exp: this.properties.exposure, gain: this.properties.gain})
       }
     },
     toggleCapture() {
@@ -106,6 +143,8 @@ export default {
     }
   },
   created() {
+    const ws = SocketUi.getInstance({host:'127.0.0.1', port: '3000'})
+    ws.registerEvent(['new_align_state','new_capture_state'], this.onEvent)
   }
 
 
@@ -173,4 +212,5 @@ export default {
   color: white;
   font-size: 1em;
 }
+
 </style>

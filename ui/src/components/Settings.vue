@@ -1,5 +1,5 @@
 <template>
-  <div class="container-box" :class="{open: isOpen}">
+  <div class="container-box open">
     <div class="main-menu">
       <el-icon @click="select('guide')">
         <promotion></promotion>
@@ -12,14 +12,37 @@
       </el-icon>
     </div>
     <div class="content">
-      <div v-show="menu='guide'">
+      <div v-show="mode=='focus'">
+        <p class="title">Focus Settings</p>
+        <div v-for="(value, setting) in states['focus_set_settings']" v-bind:key="setting">
+          <el-form-item :label="setting">
+            <el-input v-model="states['focus_set_settings'][setting]"></el-input>
+          </el-form-item>
+        </div>
+      </div>
+      <div v-show="mode=='align'">
+        <p class="title">Align Settings</p>
+        <div v-for="(value, setting) in states['align_set_settings']" v-bind:key="setting">
+          <el-form-item :label="setting">
+            <el-input v-model="states['align_set_settings'][setting]"></el-input>
+          </el-form-item>
+        </div>
+      </div>
+      <div v-show="mode=='capture'">
+        <p class="title">Capture Settings</p>
+        <div v-for="(value, setting) in states['capture_set_settings']" v-bind:key="setting">
+          <el-form-item :label="setting">
+            <el-input v-model="states['capture_set_settings'][setting]"></el-input>
+          </el-form-item>
+        </div>
+      </div>
+      <div v-show="mode=='guide'">
         <p class="title">Guide Settings</p>
-        <el-form-item label="Camera">
-          <el-input v-model="guide.camera"></el-input>
-        </el-form-item>
-        <el-form-item label="Focal length">
-          <el-input v-model="guide.focal"></el-input>
-        </el-form-item>
+        <div v-for="(value, setting) in states['guide_set_settings']" v-bind:key="setting">
+          <el-form-item :label="setting">
+            <el-input v-model="states['guide_set_settings'][setting]"></el-input>
+          </el-form-item>
+        </div>
       </div>
     </div>
   </div>
@@ -33,19 +56,40 @@ import {
 </script>
 <script>
 import SocketUi from "@/services/websocket";
+import DeviceApi from "@/services/device-api";
 
 export default {
   name: 'Settings',
   components: {
   },
-  props: ["mode"],
+  props: ["mode", "load"],
+  watch: {
+    load(value) {
+      switch(this.mode) {
+        case 'focus':
+        case 'align':
+        case 'capture':
+        case 'guide':
+          DeviceApi.cameras()
+          break
+      }
+      console.log("value=", value)
+    }
+  },
   data() {
     return {
       states : {
         'new_focus_state': {},
         'new_guide_state': {},
         'new_capture_state': {},
-        'new_align_state': {}
+        'new_align_state': {},
+        'focus_set_settings': {},
+        'focus_set_primary_settings': {},
+        'focus_set_process_settings': {},
+        'focus_set_mechanics_settings': {},
+        'capture_set_settings': {},
+        'align_set_settings': {},
+        'guide_set_settings': {}
       },
       menu: 'general',
       guide: {
@@ -55,9 +99,6 @@ export default {
     }
   },
   computed: {
-    isOpen() {
-      return this.mode === "settings"
-    }
   },
   methods: {
     select(menu) {
@@ -82,7 +123,7 @@ export default {
   },
   created() {
     const ws = SocketUi.getInstance({host:'127.0.0.1', port: '3000'})
-    ws.registerEvent(['new_'], this.onEvent)
+    ws.registerEvent(['new_', 'focus_set_', 'capture_set_settings', 'align_set_settings', 'guide_set_settings'], this.onEvent)
   }
 }
 </script>
@@ -112,12 +153,12 @@ export default {
   display: none;
   position: absolute;
   right:0px;
-  top: 7%;
+  top: 0px;
   width: 0%;
-  height: 70%;
+  height: 100%;
   color: white;
   background-color: black;
-  opacity: 0.7;
+  opacity: 1.0;
   -webkit-transition: width 1s linear 500ms;
   -moz-transition: width 1s linear 500ms;
   transition: width 1s linear 500ms;
@@ -126,8 +167,8 @@ export default {
 .container-box.open {
   display: block;
   position: absolute;
-  width: 70%;
-  height: 70%;
+  width: 100%;
+  height: 100%;
   color: white;
 }
 

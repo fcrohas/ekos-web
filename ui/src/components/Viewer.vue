@@ -5,6 +5,21 @@
             :height="height"
             :width="width"></canvas>
     <div class="overlay">{{ imageProperties.resolution }} - Gain: {{ imageProperties.gain }} - Exposure: {{ imageProperties.exposure}} s</div>
+    <div class="capture" v-if="mode=='capture'">
+      <el-progress type="circle" :percentage="progressCapture" :stroke-width="15" :color="'#aaaaaa'"/>
+      <el-progress v-if="progressSequence!=-1" type="circle" :indeterminate="isIndeterminate" :stroke-width="15" :percentage="progressSequence" :color="'#aaaaaa'">
+        <template #default="{ percentage }">
+          <span class="percentage-value">{{ percentage }}%</span>
+          <span class="percentage-label" v-if="percentage<100">En cours</span>
+          <span class="percentage-label" v-if="percentage==100">Fin</span>
+        </template>
+      </el-progress>
+      <div class="low-text">{{ getSequenceText }}</div>
+    </div>
+    <div class="mount-info" v-if="mode=='capture' && isMountConnected">
+      <div class="low-text">RA : {{ getMountRA }}</div>
+      <div class="low-text">DE : {{ getMountDE }}</div>
+    </div>
   </el-container>
 </template>
 
@@ -18,7 +33,7 @@ export default {
   props: ['mode'],
   data() {
     return {
-      states : [],
+      states : {},
       imageProperties: {},
       lastImage : null,
       width : 800,
@@ -30,10 +45,57 @@ export default {
       }
     }
   },
+  computed: {
+    isMountConnected() {
+      return this.states['new_mount_state'] !== undefined
+    },
+    getMountRA() {
+      return this.states['new_mount_state'].ra
+    },
+    getMountDE() {
+      return this.states['new_mount_state'].de
+    },
+    isIndeterminate() {
+      const capture = this.states['new_capture_state'];
+      return capture.seqr === undefined
+    },
+    getSequenceText() {
+      const capture = this.states['new_capture_state'];
+      if (capture !== undefined && capture.seqv !== undefined && capture.seqr !== undefined) {
+        return capture.seql
+      } else {
+        return "None"
+      }
+    },
+    progressCapture() {
+      const capture = this.states['new_capture_state'];
+      if (capture !== undefined && capture.expv !== undefined) {
+        return 100 - Math.round(capture.expv * 100 / capture.expr)
+      } else {
+        return 0
+      }
+    },
+    progressSequence() {
+      const capture = this.states['new_capture_state'];
+      if (capture !== undefined && capture.seqv !== undefined && capture.seqr !== undefined) {
+        return 100 - Math.round(capture.seqv * 100 / capture.seqr)
+      } else {
+        return -1
+      }
+    }
+  },
   methods: {
     onEvent(message) {
       if (message != undefined) {
         this.parse(message)
+      }
+    },
+    onMessageEvent(message) {
+      if (message != undefined) {
+        if (this.states[message.type] === undefined) {
+          this.states[message.type] = {}
+        }
+        this.states[message.type] = Object.assign(this.states[message.type], message.payload)
       }
     },
     parse(message) {
@@ -107,6 +169,7 @@ export default {
   created() {
     const ws = SocketUi.getInstance({})
     ws.registerDataEvent(this.onEvent)
+    ws.registerEvent(['new_mount_state','new_capture_state', 'new_mount_state'], this.onMessageEvent)
   },
   mounted() {
     // Instantiate
@@ -145,5 +208,53 @@ export default {
     font-size: 2em;
     color: white;
     background-color: black;
+  }
+  .mount-info {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction: column;
+    position: absolute;
+    padding: 10px;
+    left: 1em;
+    top: 1em;
+    height: 30%;
+    width: 20%;
+    font-size: 2em;
+    color: white;
+  }
+  .capture {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction: column;
+    position: absolute;
+    padding: 10px;
+    right: 5em;
+    top: 2em;
+    height: 30%;
+    width: 20%;
+    font-size: 2em;
+    color: white;
+  }
+  .el-progress__text {
+    color: white;
+  }
+  .el-progress--circle {
+    margin: 20px 0px 0px 0px;
+  }
+  .percentage-value {
+    display: block;
+    margin-top: 10px;
+    font-size: 28px;
+  }
+  .percentage-label {
+    display: block;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  .low-text {
+    font-size: 0.5em;
+    margin: 20px 0px 0px 0px;
   }
 </style>

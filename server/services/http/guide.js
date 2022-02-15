@@ -21,7 +21,7 @@ export class GuideApi extends BaseRouter {
         guideApi.router.post('/report', (req, res) => guideApi.runCommand('guide_report', req.query, res));
         guideApi.router.post('/set-settings', (req, res) => guideApi.runCommand('guide_set_settings', req.query, res));
         // Prepare websocket event
-        //context.websocket.registerFilter(['guide_'], (message) => guideApi.onRegisterEvent(message));
+        context.websocket.registerFilter(['guide_'], (message) => guideApi.onRegisterEvent(message));
         return guideApi.router;
     }
 }

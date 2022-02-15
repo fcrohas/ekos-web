@@ -6,7 +6,6 @@
           <el-col :span="24">
             <div v-if="online">
               <NavBar @change-mode="onChangeMode"/>
-              <Settings :mode="mode"></Settings>
               <!--State class="state-overlay"></State-->
               <Viewer :mode="mode"></Viewer>
               <Guider width="400" heigth="200" :show="showGuider"></Guider>
@@ -52,12 +51,10 @@ import SocketUi from "@/services/websocket";
 import States from "@/services/states";
 import ProfileApi from "@/services/profile-api.js";
 import MainTool from "@/components/MainTool";
-import Settings from "@/components/Settings";
 
 export default {
   name: 'Main',
   components: {
-    Settings,
     MainTool,
     Toolbar,
     NavBar,

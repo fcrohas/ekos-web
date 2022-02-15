@@ -5,7 +5,6 @@ export class CaptureApi extends BaseRouter {
     constructor(context) {
         super();
         this.context = context;
-        this.commands = [];
     }
 
     static mountPath() {

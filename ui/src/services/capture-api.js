@@ -3,8 +3,8 @@ import axios from "axios"
 
 export default class CaptureApi {
 
-    static capture() {
-        axios.post(Config.serverUrl() + '/api/capture/preview').then( (response) => {
+    static capture( parameters) {
+        axios.post(Config.serverUrl() + '/api/capture/preview',null, { params : parameters }).then( (response) => {
             console.log('Capture preview', response.data)
         })
     }
